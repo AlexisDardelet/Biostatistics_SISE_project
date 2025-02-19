@@ -1,0 +1,35 @@
+/* Data import */
+PROC IMPORT
+   DATAFILE='/home/u64118706/sasuser.v94/heart.csv'
+   OUT=dataset_projet
+   DBMS=CSV REPLACE;
+   GETNAMES=YES;
+RUN;
+
+/* Expliciting categorical features */
+DATA dataset_projet;
+    SET dataset_projet;
+    /* Conversion de la variable 'sex' en texte */
+    IF sex = 1 THEN sex_char = "male";
+    ELSE IF sex = 0 THEN sex_char = "female";
+    DROP sex; /* Supprime l'ancienne variable si nécessaire */
+    RENAME sex_char = sex; /* Renomme la nouvelle variable */
+RUN;
+
+/* Deleting features with NaN */
+DATA dataset_projet;
+    SET dataset_projet;
+    DROP thal ca;
+RUN;
+
+/* Renaming features */
+data dataset_projet;
+    set dataset_projet;
+    rename cp = chest_pain;
+    rename trestbps = rest_blood_p;
+    rename chol = cholestoral;
+    rename fbs = f_blood_sugar;
+    rename restecg = resting_ecg;
+    rename thalach = max_heart_rate;
+    rename exang = exerc_ind_angina;
+run;
