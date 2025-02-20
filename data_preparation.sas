@@ -1,6 +1,6 @@
 /* Data import */
 PROC IMPORT
-   DATAFILE='/home/u64118706/sasuser.v94/heart.csv'
+   DATAFILE="/home/u64118426/sasuser.v94/Projet_biostats/heart.csv"
    OUT=dataset_projet
    DBMS=CSV REPLACE;
    GETNAMES=YES;
@@ -23,8 +23,8 @@ DATA dataset_projet;
 
 	/* Converting 'fbs' + renaming */
 	set dataset_projet;
-	if fbs=1 then f_blood_sugar="true";
-	else if fbs=0 then f_blood_sugar="false";
+	if fbs=1 then f_blood_sugar="yes";
+	else if fbs=0 then f_blood_sugar="no";
 	drop fbs;
 	
 	/* Converting 'slope' + renaming */
@@ -42,8 +42,8 @@ DATA dataset_projet;
 	
 	/* Converting 'target' + renaming */
 	set dataset_projet;
-	if target=1 then heart_disease="true";
-	else if target=0 then heart_disease="false";
+	if target=1 then heart_disease="yes";
+	else if target=0 then heart_disease="no";
 	drop target;
 	
 	/* Converting 'cp' + renaming */
@@ -58,7 +58,7 @@ RUN;
 /* Deleting features with NaN */
 DATA dataset_projet;
     SET dataset_projet;
-    DROP thal ca;
+	IF cmiss(of _all_) > 0 THEN delete;
 RUN;
 
 /* Renaming features */
