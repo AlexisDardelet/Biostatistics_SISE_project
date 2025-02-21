@@ -1,3 +1,5 @@
+/* ----- Data preprocessing ----- */
+
 /* Data import */
 PROC IMPORT
    DATAFILE="/home/u64118426/sasuser.v94/Projet_biostats/heart.csv"
@@ -51,7 +53,6 @@ DATA dataset_projet;
 	if cp=1 then chest_pain="typical angina";
 	else if cp=2 then chest_pain="atypical angina";
 	else if cp=3 then chest_pain="non-anginal pain";
-	else if cp=4 then chest_pain="asymptomatic";
 	drop cp;
 RUN;
 
@@ -68,3 +69,67 @@ data dataset_projet;
     rename chol = cholestoral;
     rename thalach = max_heart_rate;
 run;
+
+/* ----- End of data preprocessing ----- */
+
+/* ----- Odd ratios ----- */
+
+PROC FREQ 
+	data=dataset_projet order=data;
+	tables sex*heart_disease / chisq relrisk alpha=0.05 nocol nocum norow nopercent;
+run;
+/* Results :
+P-value(chisq) < 0.0001 ; VCramer = 0.30 => H1 accepted : there is a dependency between sex and heart diseases
+Oddratio = 7.36 (Confidence inter. : [3.83;14.1]) 
+Interpretation : x7.36 odds to have a heart disease if you're a woman
+*/
+
+PROC FREQ 
+	data=dataset_projet order=data;
+	tables resting_ecg*heart_disease / chisq relrisk alpha=0.05 nocol nocum norow nopercent;
+run;
+/* Results :
+P-value(chisq) = 0.005 ; VCramer =  0.12 => H1 accepted : there is a dependency between resting ECG and heart diseases
+Oddratio = 1.81 (Confidence inter. : [1.2;2.8]) 
+Interpretation : x1.81 odds to have a heart disease if you have an abnormal resting electrocardiographic results
+*/
+
+PROC FREQ data=dataset_projet order=data;
+	tables exerc_ind_angina*heart_disease / chisq relrisk alpha=0.05 nocol nocum norow nopercent;
+run;
+/* Results :
+P-value(chisq) = 0.03  ; VCramer = 0.09  => H1 accepted : there is a dependency between exercise induced angina and heart disease
+Oddratio = 1.87 (Confidence inter. : [1.04;3.33]) 
+Interpretation : x1.87 oods to have a heart disease if you don't show exercise induced angina (according to litterature, you would expect the opposite)
+*/
+
+PROC FREQ 
+	data=dataset_projet order=data;
+	tables f_blood_sugar*heart_disease / chisq relrisk alpha=0.05 nocol nocum norow nopercent;
+run;
+/* Results :
+P-value(chisq) = 0.99 => H0 accepted : there is no link between a fasting abnormally high blood sugar rate and heart disease*/
+
+
+/* Chi-square test on native 'chest_pain' feature (3 modes) */ 
+PROC FREQ 
+	data=dataset_projet order=data; 
+	tables chest_pain*heart_disease / chisq relrisk alpha=0.05 nocol nocum norow nopercent;
+run;
+/* Results :
+P-value(chisq) = 0.006 => H1 accepted, there is a link between the type of chest pain and heart disease.*/
+/* Chi-square test and odd ratio on binarized 'chest_pain' */
+DATA dataset_projet;
+	set dataset_projet;
+	if chest_pain IN ("typical angina") then chest_pain_bin="typical";
+	else if chest_pain IN ("atypical angin","non-anginal pa") then chest_pain_bin="atypical";
+run;
+PROC FREQ 
+	data=dataset_projet order=data; 
+	tables chest_pain_bin*heart_disease / chisq relrisk alpha=0.05 nocol nocum norow nopercent;
+run;
+/* Results :
+P-value(chisq) = 0.03 ; VCramer = 0.09 => H1 accepted : there is a dependency between the type of chest pain and heart diseases (typical as a chest angina type of pain) 
+Oddratio = 1.67 (Confidence inter. : [1.05;2.68]) 
+Interpretation : x1.67 odds to have a heart disease if you chest pain is an classic angina-type of pain
+*/	
